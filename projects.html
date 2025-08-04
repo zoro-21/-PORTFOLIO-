@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - Terrigraphic</title>
+    <link rel="stylesheet" href="terrigraphic-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .portfolio-hero {
+            height: 60vh;
+            background: linear-gradient(135deg, rgba(68, 255, 204, 0.2), rgba(0, 212, 255, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-top: 80px;
+        }
+        
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 80px 0;
+        }
+        
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(68, 255, 204, 0.2);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .project-card:hover {
+            transform: translateY(-10px);
+            border-color: #44ffcc;
+            box-shadow: 0 20px 40px rgba(68, 255, 204, 0.3);
+        }
+        
+        .project-image {
+            height: 250px;
+            background: linear-gradient(45deg, #44ffcc, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: #000;
+        }
+        
+        .project-content {
+            padding: 30px;
+        }
+        
+        .project-title {
+            font-size: 1.5rem;
+            color: #44ffcc;
+            margin-bottom: 15px;
+        }
+        
+        .project-description {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tag {
+            background: rgba(68, 255, 204, 0.2);
+            color: #44ffcc;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(68, 255, 204, 0.3);
+        }
+        
+        .project-link {
+            display: inline-block;
+            color: #44ffcc;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .project-link:hover {
+            text-shadow: 0 0 10px rgba(68, 255, 204, 0.8);
+        }
+        
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 25px;
+            background: transparent;
+            color: #44ffcc;
+            border: 2px solid #44ffcc;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #44ffcc;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <div class="logo">Terrigraphic</div>
+            <nav>
+                <ul>
+                    <li><a href="terrigraphic-index.html">Home</a></li>
+                    <li><a href="projects.html">Portfolio</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="portfolio-hero">
+        <div class="container">
+            <h1>Our Creative Portfolio</h1>
+            <p>Explore our collection of futuristic 3D art and digital designs</p>
+        </div>
+    </section>
+
+    <section id="portfolio">
+        <div class="container">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Projects</button>
+                <button class="filter-btn" data-filter="3d-art">3D Art</button>
+                <button class="filter-btn" data-filter="digital-design">Digital Design</button>
+                <button class="filter-btn" data-filter="interactive">Interactive</button>
+            </div>
+
+            <div class="portfolio-grid">
+                <div class="project-card" data-category="3d-art">
+                    <div class="project-image">🎨</div>
+                    <div class="project-content">
+                        <h3 class="project-title">Neon Cityscape</h3>
+                        <p class="project-description">A futuristic cyberpunk cityscape with neon lighting and atmospheric effects, showcasing advanced 3D modeling techniques.</p>
+                        <div class="project-tags">
+                            <span class="tag">3D Modeling</span>
+                            <span class="tag">Lighting</span>
+                            <span class="tag">Cyberpunk</span>
+                        </div>
+                        <a href="#" class="project-link">View Project →</a>
+                    </div>
+                </div>
+
+                <div class="project-card" data-category="digital-design">
+                    <div class="project-image">🚀</div>
+                    <div class="project-content">
+                        <h3 class="project-title">Spacecraft Interface</h3>
+                        <p class="project-description">An intuitive spacecraft control interface design with holographic elements and advanced user experience principles.</p>
+                        <div class="project-tags">
+                            <span class="tag">UI/UX</span>
+                            <span class="tag">Interface</span>
+                            <span class="tag">Sci-Fi</span>
+                        </div>
+                        <a href="#" class="project-link">View Project →</a>
+                    </div>
+                </div>
+
+                <div class="project-card" data-category="interactive">
+                    <div class="project-image">⚡</div>
+                    <div class="project-content">
+                        <h3 class="project-title">Interactive Hologram</h3>
+                        <p class="project-description">An interactive 3D holographic display system with gesture controls and real-time particle effects.</p>
+                        <div class="project-tags">
+                            <span class="tag">WebGL</span>
+                            <span class="tag">Interactive</span>
+                            <span class="tag">Particles</span>
+                        </div>
+                        <a href="#" class="project-link">View Project →</a>
+                    </div>
+                </div>
+
+                <div class="project-card" data-category="3d-art">
+                    <div class="project-image">🌌</div>
+                    <div class="project-content">
+                        <h3 class="project-title">Cosmic Portal</h3>
+                        <p class="project-description">A mesmerizing cosmic portal with swirling galaxies and dimensional rifts, created using advanced particle systems.</p>
+                        <div class="project-tags">
+                            <span class="tag">Particles</span>
+                            <span class="tag">Space</span>
+                            <span class="tag">Animation</span>
+                        </div>
+                        <a href="#" class="project-link">View Project →</a>
+                    </div>
+                </div>
+
+                <div class="project-card" data-category="digital-design">
+                    <div class="project-image">🔮</div>
+                    <div class="project-content">
+                        <h3 class="project-title">AR Experience</h3>
+                        <p class="project-description">An augmented reality experience that blends digital art with the physical world through innovative AR technology.</p>
+                        <div class="project-tags">
+                            <span class="tag">AR</span>
+                            <span class="tag">Mobile</span>
+                            <span class="tag">Innovation</span>
+                        </div>
+                        <a href="#" class="project-link">View Project →</a>
+                    </div>
+                </div>
+
+                <div class="project-card" data-category="interactive">
+                    <div class="project-image">🎮</div>
+                    <div class="project-content">
+                        <h3 class="project-title">VR Art Gallery</h3>
+                        <p class="project-description">A virtual reality art gallery where users can explore and interact with 3D artworks in an immersive environment.</p>
+                        <div class="project-tags">
+                            <span class="tag">VR</span>
+                            <span class="tag">Gallery</span>
+                            <span class="tag">Immersive</span>
+                        </div>
+                        <a href="#" class="project-link">View Project →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Terrigraphic | Designed with Future in Mind</p>
+            <div class="social-links">
+                <a href="#" class="social-link">Github</a>
+                <a href="#" class="social-link">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Portfolio filtering functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const projectCards = document.querySelectorAll('.project-card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                const filterValue = button.getAttribute('data-filter');
+
+                projectCards.forEach(card => {
+                    if (filterValue === 'all' || card.getAttribute('data-category') === filterValue) {
+                        card.style.display = 'block';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                        }, 100);
+                    } else {
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            });
+        });
+
+        // Smooth scroll for header
+        let lastScrollY = window.scrollY;
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            const header = document.querySelector('header');
+            
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                header.style.transform = 'translateY(0)';
+            }
+            
+            lastScrollY = currentScrollY;
+        });
+    </script>
+</body>
+</html>
