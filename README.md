@@ -1,14 +1,25 @@
-# Terrigraphic Portfolio
+# Thrishank P - Terrigraphic Portfolio
 
-A futuristic 3D art and digital design portfolio website built with modern web technologies.
+A futuristic 3D art and digital design portfolio website showcasing the work of Thrishank P, a passionate digital artist and creative developer specializing in 3D art, interactive media, and cutting-edge web technologies.
+
+## About Thrishank P
+
+Thrishank P is a passionate digital artist and creative developer who combines technical expertise with artistic vision to create compelling digital experiences. His journey in digital art and development has led him to master various technologies including WebGL, Three.js, and modern web frameworks. He's particularly passionate about creating interactive 3D experiences and pushing the boundaries of what's possible in web-based art and design.
+
+**Contact Information:**
+- Email: thrishank3000@gmail.com
+- GitHub: [zoro-21](https://github.com/zoro-21/-PORTFOLIO-.git)
+- LinkedIn: [Thrishank P](https://www.linkedin.com/in/thrishank-p-34a615295)
 
 ## Features
 
+- **Personal About Section**: Comprehensive information about Thrishank P's background and expertise
 - **3D Interactive Background**: Powered by Three.js with animated geometric shapes and particle systems
 - **Responsive Design**: Fully responsive across all devices
 - **Modern UI/UX**: Futuristic design with smooth animations and transitions
 - **Contact Form**: Functional contact form with email integration
-- **Portfolio Showcase**: Filterable project gallery
+- **Portfolio Showcase**: Filterable project gallery with various 3D art and interactive projects
+- **Professional Timeline**: Journey from 2022-Present as Digital Artist & Developer
 - **Performance Optimized**: Fast loading and smooth animations
 
 ## Tech Stack
@@ -182,7 +193,8 @@ MIT License - feel free to use this project for your own portfolio!
 
 For questions or issues:
 - Create an issue in the repository
-- Email: hello@terrigraphic.com
+- Email: thrishank3000@gmail.com
+- LinkedIn: [Thrishank P](https://www.linkedin.com/in/thrishank-p-34a615295)
 
 ## Acknowledgments
 
@@ -192,5 +204,5 @@ For questions or issues:
 
 ---
 
-**Built with ❤️ for the future of digital art**
+**Built with ❤️ by Thrishank P for the future of digital art**
 # -PORTFOLIO-
