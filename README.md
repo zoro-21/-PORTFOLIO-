@@ -19,7 +19,7 @@ Thrishank P is a passionate digital artist and creative developer who combines t
 - **Modern UI/UX**: Futuristic design with smooth animations and transitions
 - **Contact Form**: Functional contact form with email integration
 - **Portfolio Showcase**: Filterable project gallery with various 3D art and interactive projects
-- **Professional Timeline**: Journey from 2022-Present as Digital Artist & Developer
+- **Professional Timeline**: Journey from Present as Digital Artist & Developer
 - **Performance Optimized**: Fast loading and smooth animations
 
 ## Tech Stack
