@@ -1,0 +1,245 @@
+.about {
+  min-height: 100vh;
+  padding: 120px 20px 80px;
+  position: relative;
+}
+
+.about-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.about-header {
+  text-align: center;
+  margin-bottom: 60px;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.about-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(45deg, #00ffff, #0080ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.about-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  color: #cccccc;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.about-content {
+  animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+.about-text {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-section-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #00ffff;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.about-description {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #e0e0e0;
+  margin-bottom: 25px;
+  text-align: justify;
+}
+
+.skills-section {
+  margin: 60px 0;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 255, 255, 0.1);
+}
+
+.skills-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #00ffff;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+}
+
+.skill-item {
+  padding: 25px;
+  background: rgba(0, 255, 255, 0.1);
+  border-radius: 15px;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.skill-item:hover {
+  transform: translateY(-5px);
+  background: rgba(0, 255, 255, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 255, 255, 0.2);
+}
+
+.skill-item h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.skill-item p {
+  color: #cccccc;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.experience-section {
+  margin: 60px 0;
+}
+
+.experience-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #00ffff;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.experience-item {
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  margin-bottom: 25px;
+  transition: all 0.3s ease;
+}
+
+.experience-item:hover {
+  border-color: rgba(0, 255, 255, 0.3);
+  transform: translateX(10px);
+}
+
+.experience-item h4 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.experience-company {
+  font-size: 1rem;
+  color: #00ffff;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.experience-description {
+  color: #e0e0e0;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Animation delays for staggered effect */
+.skill-item:nth-child(1) { animation: slideInLeft 0.6s ease-out 0.1s both; }
+.skill-item:nth-child(2) { animation: slideInLeft 0.6s ease-out 0.2s both; }
+.skill-item:nth-child(3) { animation: slideInLeft 0.6s ease-out 0.3s both; }
+.skill-item:nth-child(4) { animation: slideInLeft 0.6s ease-out 0.4s both; }
+
+.experience-item:nth-child(1) { animation: slideInRight 0.6s ease-out 0.2s both; }
+.experience-item:nth-child(2) { animation: slideInRight 0.6s ease-out 0.4s both; }
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .about {
+    padding: 100px 15px 60px;
+  }
+  
+  .skills-section,
+  .experience-section {
+    margin: 40px 0;
+  }
+  
+  .skills-section {
+    padding: 30px 20px;
+  }
+  
+  .skills-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .skill-item,
+  .experience-item {
+    padding: 20px;
+  }
+  
+  .about-description {
+    text-align: left;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-header {
+    margin-bottom: 40px;
+  }
+  
+  .skills-section {
+    padding: 25px 15px;
+  }
+  
+  .skill-item h4 {
+    font-size: 1.1rem;
+  }
+  
+  .skill-item p {
+    font-size: 0.9rem;
+  }
+  
+  .experience-item h4 {
+    font-size: 1.2rem;
+  }
+  
+  .experience-description {
+    font-size: 0.95rem;
+  }
+}
