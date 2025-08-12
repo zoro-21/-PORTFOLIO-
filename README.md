@@ -1,5 +1,5 @@
 # Thrishank P - Terrigraphic Portfolio
-http://localhost:3000/terrigraphic-index.html
+
 A futuristic 3D art and digital design portfolio website showcasing the work of Thrishank P, a passionate digital artist and creative developer specializing in 3D art, interactive media, and cutting-edge web technologies.
 
 ## About Thrishank P
