@@ -1,0 +1,141 @@
+name: CD — Deploy to EKS
+
+on:
+  workflow_run:
+    workflows: ["CI — Build & Push to ECR"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: 'Image tag to deploy (e.g. main-a1b2c3d)'
+        required: true
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: terrigraphic-portfolio
+  EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
+  K8S_NAMESPACE: portfolio
+
+jobs:
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    # Only run if CI passed (or triggered manually)
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    environment:
+      name: production
+      url: https://terrigraphic.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Resolve image tag
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            IMAGE_TAG="${{ github.event.inputs.image-tag }}"
+          else
+            # Pull the tag produced by the CI run that triggered this workflow
+            SHORT_SHA=$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-7)
+            IMAGE_TAG="main-${SHORT_SHA}"
+          fi
+          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image-uri=${IMAGE_URI}"  >> $GITHUB_OUTPUT
+          echo "🚀 Deploying image: $IMAGE_URI"
+
+      - name: Verify image exists in ECR
+        run: |
+          aws ecr describe-images \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --image-ids imageTag=${{ steps.resolve.outputs.image-tag }} \
+            --region ${{ env.AWS_REGION }}
+          echo "✅ Image confirmed in ECR"
+
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ env.EKS_CLUSTER_NAME }} \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Ensure namespace exists
+        run: |
+          kubectl get namespace ${{ env.K8S_NAMESPACE }} 2>/dev/null \
+            || kubectl create namespace ${{ env.K8S_NAMESPACE }}
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/deployment.yml -n ${{ env.K8S_NAMESPACE }}
+          kubectl apply -f k8s/service.yml    -n ${{ env.K8S_NAMESPACE }}
+          kubectl apply -f k8s/ingress.yml    -n ${{ env.K8S_NAMESPACE }}
+
+      - name: Update deployment image to new tag
+        run: |
+          kubectl set image deployment/terrigraphic-portfolio \
+            terrigraphic-portfolio=${{ steps.resolve.outputs.image-uri }} \
+            -n ${{ env.K8S_NAMESPACE }}
+          echo "✅ Image updated to ${{ steps.resolve.outputs.image-uri }}"
+
+      - name: Wait for rollout to complete
+        run: |
+          kubectl rollout status deployment/terrigraphic-portfolio \
+            -n ${{ env.K8S_NAMESPACE }} \
+            --timeout=5m
+          echo "✅ Rollout complete"
+
+      - name: Post-deploy health check
+        run: |
+          echo "Waiting for ALB to stabilise..."
+          sleep 15
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://terrigraphic.com/api/health)
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Health check failed — HTTP $STATUS — rolling back"
+            kubectl rollout undo deployment/terrigraphic-portfolio -n ${{ env.K8S_NAMESPACE }}
+            exit 1
+          fi
+          echo "✅ Production health check passed"
+
+      - name: Show running pods
+        if: always()
+        run: |
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }} -l app=terrigraphic-portfolio
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "## 🚀 Deployed to EKS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Image** | \`${{ steps.resolve.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Cluster** | \`${{ env.EKS_CLUSTER_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Namespace** | \`${{ env.K8S_NAMESPACE }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **URL** | https://terrigraphic.com |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Triggered by** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "⚠️ Deployment failed — rolling back"
+          kubectl rollout undo deployment/terrigraphic-portfolio -n ${{ env.K8S_NAMESPACE }}
+          kubectl rollout status deployment/terrigraphic-portfolio -n ${{ env.K8S_NAMESPACE }} --timeout=3m
