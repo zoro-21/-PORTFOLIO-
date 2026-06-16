@@ -1,4 +1,4 @@
-name: Tanusha K8s Deployment
+name: Porfolio K8s Deployment
 
 on:
   push:
