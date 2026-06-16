@@ -1,1 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: terrigraphic-portfolio
+  namespace: portfolio
+  labels:
+    app: terrigraphic-portfolio
+    version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: terrigraphic-portfolio
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0         # Zero-downtime deploys
+  template:
+    metadata:
+      labels:
+        app: terrigraphic-portfolio
+    spec:
+      containers:
+        - name: terrigraphic-portfolio
+          # Image is updated by the CD pipeline on every deploy
+          image: <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/terrigraphic-portfolio:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+
+          # Environment — non-sensitive values inline, secrets from K8s Secret
+          env:
+            - name: PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: "production"
+            - name: FRONTEND_URL
+              value: "https://terrigraphic.com"
+            - name: EMAIL_SERVICE
+              value: "gmail"
+            - name: SMTP_HOST
+              value: "smtp.gmail.com"
+            - name: SMTP_PORT
+              value: "587"
+            - name: EMAIL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: terrigraphic-secrets
+                  key: EMAIL_USER
+            - name: EMAIL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: terrigraphic-secrets
+                  key: EMAIL_PASS
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: terrigraphic-secrets
+                  key: ADMIN_EMAIL
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: terrigraphic-secrets
+                  key: SESSION_SECRET
+
+          # Liveness — restart pod if server becomes unresponsive
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+
+          # Readiness — only send traffic once server is ready
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+      # Spread pods across availability zones for HA
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: terrigraphic-portfolio
+
+---
+# Secret template — values must be base64-encoded
+# Create via: kubectl create secret generic terrigraphic-secrets \
+#   --from-literal=EMAIL_USER=your@email.com \
+#   --from-literal=EMAIL_PASS=your-app-password \
+#   --from-literal=ADMIN_EMAIL=admin@terrigraphic.com \
+#   --from-literal=SESSION_SECRET=your-secret \
+#   -n portfolio
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terrigraphic-secrets
+  namespace: portfolio
+type: Opaque
+data:
+  EMAIL_USER: ""       # base64 of your Gmail address
+  EMAIL_PASS: ""       # base64 of your Gmail app password
+  ADMIN_EMAIL: ""      # base64 of admin email
+  SESSION_SECRET: ""   # base64 of a strong random string
 
