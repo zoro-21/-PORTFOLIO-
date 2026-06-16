@@ -1,0 +1,179 @@
+name: CI — Build & Push to ECR
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: terrigraphic-portfolio
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Job 1: Validate code & configs
+  # ─────────────────────────────────────────────
+  validate:
+    name: Validate Code & K8s Manifests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for committed .env file
+        run: |
+          if git ls-files | grep -E "^\.env$"; then
+            echo "❌ .env is committed — remove it immediately!"
+            exit 1
+          fi
+          echo "✅ No .env in tracked files"
+
+      - name: Syntax check server.js
+        run: node --check server.js && echo "✅ server.js OK"
+
+      - name: Verify HTML files exist
+        run: |
+          for file in terrigraphic-index.html about.html projects.html contact.html 404.html; do
+            [ -f "$file" ] && echo "✅ $file" || { echo "❌ Missing: $file"; exit 1; }
+          done
+
+      - name: Install kubeval (K8s manifest validator)
+        run: |
+          curl -sLO https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin/
+
+      - name: Validate Kubernetes manifests
+        run: |
+          kubeval k8s/deployment.yml && echo "✅ deployment.yml valid"
+          kubeval k8s/service.yml    && echo "✅ service.yml valid"
+          kubeval k8s/ingress.yml    && echo "✅ ingress.yml valid"
+
+  # ─────────────────────────────────────────────
+  # Job 2: Smoke test the Express server
+  # ─────────────────────────────────────────────
+  smoke-test:
+    name: Server Smoke Test
+    runs-on: ubuntu-latest
+
+    env:
+      PORT: 3000
+      NODE_ENV: test
+      FRONTEND_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start server
+        run: |
+          node server.js &
+          echo "SERVER_PID=$!" >> $GITHUB_ENV
+          sleep 3
+
+      - name: Health check
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health)
+          [ "$STATUS" = "200" ] && echo "✅ /api/health OK" || { echo "❌ Got HTTP $STATUS"; exit 1; }
+
+      - name: Route checks
+        run: |
+          for route in "" about projects contact; do
+            URL="http://localhost:3000/${route}"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+            [ "$STATUS" = "200" ] && echo "✅ /$route OK" || { echo "❌ /$route returned $STATUS"; exit 1; }
+          done
+
+      - name: Contact form validation
+        run: |
+          RES=$(curl -s -X POST http://localhost:3000/api/contact \
+            -H "Content-Type: application/json" \
+            -d '{"name":"","email":"","subject":"","message":""}')
+          echo "$RES" | grep -q '"success":false' \
+            && echo "✅ Validation rejects empty form" \
+            || { echo "❌ Empty form should fail validation"; exit 1; }
+
+      - name: Stop server
+        if: always()
+        run: kill $SERVER_PID 2>/dev/null || true
+
+  # ─────────────────────────────────────────────
+  # Job 3: Build Docker image & push to ECR
+  #         (only on push to main/develop, not PRs)
+  # ─────────────────────────────────────────────
+  build-and-push:
+    name: Build & Push Docker Image to ECR
+    runs-on: ubuntu-latest
+    needs: [validate, smoke-test]
+    if: github.event_name == 'push'
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.image-tag }}
+      image-uri: ${{ steps.meta.outputs.image-uri }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Generate image tag & URI
+        id: meta
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          IMAGE_TAG="${{ github.ref_name }}-${SHORT_SHA}"
+          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image-uri=${IMAGE_URI}"  >> $GITHUB_OUTPUT
+          echo "📦 Image: $IMAGE_URI"
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg NODE_ENV=production \
+            --tag ${{ steps.meta.outputs.image-uri }} \
+            --tag ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest \
+            .
+
+      - name: Push image to ECR
+        run: |
+          docker push ${{ steps.meta.outputs.image-uri }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          echo "✅ Pushed ${{ steps.meta.outputs.image-uri }}"
+
+      - name: Scan image for vulnerabilities (ECR)
+        run: |
+          aws ecr start-image-scan \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --image-id imageTag=${{ steps.meta.outputs.image-tag }} \
+            --region ${{ env.AWS_REGION }} || true
+          echo "🔍 Image scan triggered in ECR"
